@@ -8,23 +8,30 @@
 #define limit_x
 #define limit_y
 
-// #define point_count 80
 
-// uint8 left_line[point_count][2];
+#define point_count 80
+
+// uint8 line_left[point_count][2];
 // struct Site_t
 // {
 //     uint16 x;
 //     uint16 y;
 // };
 
-Site_t left_line[point_count],right_line[point_count],mid_line[point_count];
+Site_t line_left[point_count],line_right[point_count],line_mid[point_count];
 uint8 line_cnt_left, line_cnt_right, line_cnt_mid;
 // 0-黑色 255-白色
 void simplemid(uint8 **image_array)
 {
+
+    //行和列
     uint8 i, j;
+    //临时保存左右边界
     uint8 tmp_left, tmp_right;
+    //扫描到当前行数计数
     line_cnt_left = line_cnt_right = line_cnt_right = 0;
+
+    //前三行扫描，扫描失败保存左右边界
     for(i = 0; i < 3; i++)
     {
         tmp_left = 0, tmp_right = width - 1;
@@ -39,91 +46,86 @@ void simplemid(uint8 **image_array)
                 tmp_right = width - 1 - j;
             }
         }
-        left_line[line_cnt_left].y = i; left_line[line_cnt_left].x = tmp_left;
+        line_left[line_cnt_left].y = i; line_left[line_cnt_left].x = tmp_left;
         line_cnt_left++;
 
-        right_line[line_cnt_right].y = i; right_line[line_cnt_right].x = tmp_right;
+        line_right[line_cnt_right].y = i; line_right[line_cnt_right].x = tmp_right;
         line_cnt_right++;
 
-        mid_line[line_cnt_mid].y = ( left_line[line_cnt_mid].y + right_line[line_cnt_mid].y ) / 2; 
-        mid_line[line_cnt_mid].x = ( left_line[line_cnt_mid].x + right_line[line_cnt_mid].x ) / 2;
+        line_mid[line_cnt_mid].y = ( line_left[line_cnt_mid].y + line_right[line_cnt_mid].y ) / 2; 
+        line_mid[line_cnt_mid].x = ( line_left[line_cnt_mid].x + line_right[line_cnt_mid].x ) / 2;
         line_cnt_mid++;
     }
 
+
     //单独扫描左线
-    
-    uint8 left_i, limit_y0, limit_y1;
-    uint8 scan_direct = 1;
-    uint8 n = 0;
-    while( n < point_count )
+    // uint8 left_i, limit_y0, limit_y1;
+    // uint8 scan_direct = 1;
+
+    //扫描方向
+    uint8 line_left_direc = 1;
+    uint8 line_right_direc = 1;
+
+    //扫描数
+    uint8 n = 3; 
+
+    while(n < point_count)
     {
-        line_get_left();
-        line_get_right();
+        // 找到任何一个点
+        // int flag_left = 0;
+        uint8 line_left_limit_x0  =  (line_left[line_cnt_left-1].x - limit_x) > 0    ?    line_left[line_cnt_left-1].x    :    1    ;
+        uint8 line_left_limit_x1  =  (line_left[line_cnt_left-1].x + limit_x) <= width - 1    ?    line_left[line_cnt_left-1].x    :    width - 1    ;
+        uint8 line_left_space = 0;
+        uint8 line_left_pos = -1;
+        // left_j = ( line_left[line_p-1].y - limit_y ) >= 0? -limit_y
+        // limit_y0 = (line_left[line_cnt_left-1].y - limit_y) > 0 ? line_left[line_cnt_left-1].y : 1;
+        // limit_y1 = (line_left[line_cnt_left-1].y + limit_y) <= width - 1 ? line_left[line_cnt_left-1].y : width - 1;
+        
+        for(  uint8 line_left_tmp_i = line_left[n-1].y + line_left_direc  ;  line_left_limit_x0 <= line_left_limit_x1  ;  line_left_limit_x0++  )
+        {
+            // if( == 1)
+            // {
+                if( 255  ==  image_array[line_left_tmp_i][line_left_limit_x0] )     line_left_space ++;
+
+                if(  (line_left_direc == 1)  ==  ( image_array[ line_left_tmp_i ][ line_left_limit_x0 ] > image_array[ line_left_tmp_i ][ line_left_limit_x0 - 1 ] )   )
+                {
+                    line_left_pos = line_left_limit_x0;
+                }
+            // }
 
 
+            // else
+            // {
+            //     if(image_array[left_i][limit_y0] < image_array[left_i][limit_y0-1])
+            //     {
+            //         flag_left = 1;
+            //         line_left[line_cnt_left].x = left_i;
+            //         line_left[line_cnt_left].y = limit_y0 - 1;
+            //         line_cnt_left++;
+            //     }
+            // }
 
-
-
-
+        }
+        //没有找到点,反向查找
+        if(!flag_left){
+            scan_direct = -1;
+            line_left[line_cnt_left].x = line_left[line_cnt_left - 1].x;
+            line_left[line_cnt_left].y = line_left[line_cnt_left - 1].y;
+        }  
 
     }
 
-    
-
-
-    // for(left_i = i; ; (left_i += scan_direct))
-    // {
-    //     // 找到任何一个点
-    //     int flag_left = 0;
-        
-    //     // left_j = ( left_line[line_p-1].y - limit_y ) >= 0? -limit_y
-    //     limit_y0 = (left_line[line_cnt_left-1].y - limit_y) > 0 ? left_line[line_cnt_left-1].y : 1;
-    //     limit_y1 = (left_line[line_cnt_left-1].y + limit_y) <= width - 1 ? left_line[line_cnt_left-1].y : width - 1;
-        
-    //     for( ; limit_y0 <= limit_y1; limit_y0++)
-    //     {
-    //         if(scan_direct == 1)
-    //         {
-    //             if(image_array[left_i][limit_y0] > image_array[left_i][limit_y0-1])
-    //             {
-    //                 flag_left = 1;
-    //                 left_line[line_cnt_left].x = left_i;
-    //                 left_line[line_cnt_left].y = limit_y0;
-    //                 line_cnt_left++;
-    //             }
-    //         }
-    //         else
-    //         {
-    //             if(image_array[left_i][limit_y0] < image_array[left_i][limit_y0-1])
-    //             {
-    //                 flag_left = 1;
-    //                 left_line[line_cnt_left].x = left_i;
-    //                 left_line[line_cnt_left].y = limit_y0 - 1;
-    //                 line_cnt_left++;
-    //             }
-    //         }
-
-    //     }
-    //     //没有找到点,反向查找
-    //     if(!flag_left){
-    //         scan_direct = -1;
-    //         left_line[line_cnt_left].x = left_line[line_cnt_left - 1].x;
-    //         left_line[line_cnt_left].y = left_line[line_cnt_left - 1].y;
-    //     }  
-
-    // }
-
 
     
 }
 
 
 
-bool line_get_left(uint8 n,)
-{
+// bool line_get_left(uint8 n,)
+// {
 
 
-}
+// }
 
 
 
